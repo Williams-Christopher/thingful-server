@@ -23,6 +23,10 @@ describe('Things Endpoints', function() {
 
   before('cleanup', () => helpers.cleanTables(db))
 
+  // beforeEach('insert thingful_users', () =>
+  //   db('thingful_users').insert(testUsers)
+  // );
+
   afterEach('cleanup', () => helpers.cleanTables(db))
 
   describe(`GET /api/things`, () => {
@@ -85,12 +89,17 @@ describe('Things Endpoints', function() {
     })
   })
 
-  describe(`GET /api/things/:thing_id`, () => {
+  describe.only(`GET /api/things/:thing_id`, () => {
     context(`Given no things`, () => {
+      beforeEach(() => {
+        console.log('beforeEach');
+        return db.into('thingful_users').insert(testUsers)
+      })
       it(`responds with 404`, () => {
         const thingId = 123456
         return supertest(app)
           .get(`/api/things/${thingId}`)
+          .set('Authorization', helpers.makeAuthHeader(testUsers[0]))
           .expect(404, { error: `Thing doesn't exist` })
       })
     })
@@ -115,6 +124,7 @@ describe('Things Endpoints', function() {
 
         return supertest(app)
           .get(`/api/things/${thingId}`)
+          .set('Authorization', helpers.makeAuthHeader(testUsers[0]))
           .expect(200, expectedThing)
       })
     })
@@ -137,6 +147,7 @@ describe('Things Endpoints', function() {
       it('removes XSS attack content', () => {
         return supertest(app)
           .get(`/api/things/${maliciousThing.id}`)
+          //.set('Authorization', helpers.makeAuthHeader(testUsers[0]))
           .expect(200)
           .expect(res => {
             expect(res.body.title).to.eql(expectedThing.title)
@@ -152,6 +163,7 @@ describe('Things Endpoints', function() {
         const thingId = 123456
         return supertest(app)
           .get(`/api/things/${thingId}/reviews`)
+          .set('Authorization', helpers.makeAuthHeader(testUsers[0]))
           .expect(404, { error: `Thing doesn't exist` })
       })
     })
@@ -174,6 +186,7 @@ describe('Things Endpoints', function() {
 
         return supertest(app)
           .get(`/api/things/${thingId}/reviews`)
+          .set('Authorization', helpers.makeAuthHeader(testUsers[0]))
           .expect(200, expectedReviews)
       })
     })
