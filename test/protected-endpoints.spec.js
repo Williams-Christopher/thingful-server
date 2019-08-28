@@ -44,29 +44,35 @@ describe('Protected Endpoints', function () {
     ];
     protectedEndpoints.forEach(endpoint => {
         describe(endpoint.name, () => {
-            it(`responds with 401 'Missing basic token' if basic token not supplied`, () => {
+            it(`responds with 401 'Missing bearer token' if bearer token not supplied`, () => {
                 return endpoint.method(endpoint.path)
-                    .expect(401, {error: `Missing basic token`});
+                    .expect(401, {error: `Missing bearer token`});
             });
 
-            it(`responds 401 'Unauthorized request' when no credentials are supplied`, () => {
-                const userNoCreds = {user_name: '', password: ''};
+            it(`responds 401 'Unauthorized request' when invalid JWT secret`, () => {
+                //const userNoCreds = {user_name: '', password: ''};
+                const validUser = testUsers[0];
+                const invalidSecret = 'bad-secret';
                 return endpoint.method(endpoint.path)
-                    .set('Authorization', helpers.makeAuthHeader(userNoCreds))
+                    //.set('Authorization', helpers.makeAuthHeader(userNoCreds))
+                    .set('Authorization', helpers.makeAuthHeader(validUser, invalidSecret))
                     .expect(401, {error: `Unauthorized request`});
             });
 
-            it(`responds 401 'Unauthorized request' when invalid user supplied`, () => {
-                const userInvalidCreds = {user_name: 'user-does', password: 'not-exist'};
+            it(`responds 401 'Unauthorized request' when invalid subject (user) in payload`, () => {
+                //const userInvalidCreds = {user_name: 'user-does', password: 'not-exist'};
+                const invalidUser = { user_id: 1, user_name: 'does-not-exist' };
                 return endpoint.method(endpoint.path)
-                    .set('Authorization', helpers.makeAuthHeader(userInvalidCreds))
+                    .set('Authorization', helpers.makeAuthHeader(invalidUser))
                     .expect(401, {error: `Unauthorized request`});
             });
 
             it(`responds 401 'Unauthorized request' when invalid password supplied`, () => {
-                const userBadPassword = {user_name: testUsers[0], password: 'bad-password'};
+                //const userBadPassword = {user_name: testUsers[0], password: 'bad-password'};
+                const invalidUserPassword = testUsers[0];
+                invalidUserPassword.password = 'not-a-valid-password';
                 return endpoint.method(endpoint.path)
-                    .set('Authorization', helpers.makeAuthHeader(userBadPassword))
+                    .set('Authorization', helpers.makeAuthHeader(invalidUserPassword))
                     .expect(401, {error: 'Unauthorized request'});
             });
         });

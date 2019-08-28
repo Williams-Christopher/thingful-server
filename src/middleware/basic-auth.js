@@ -1,4 +1,4 @@
-const AuthService = require('./auth-service');
+const AuthService = require('../auth/auth-service');
 const bcrypt = require('bcryptjs');
 
 function  requireAuth(req, res, next) {
@@ -36,4 +36,6 @@ function  requireAuth(req, res, next) {
         .catch(next);
 };
 
-module.exports = requireAuth;
+module.exports = {
+    requireAuth,
+}
